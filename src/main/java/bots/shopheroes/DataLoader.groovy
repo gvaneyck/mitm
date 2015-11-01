@@ -166,10 +166,9 @@ class DataLoader {
             }
         }
 
-        // Remove 0 power items and sort
-        itemStats = itemStats.sort { it.value.power }
 
         // Add in sub crafts
+        itemStats = itemStats.sort { it.value.power }
         itemStats.each { name, item ->
             def newReqs = [:]
             def newSkills = [:]
@@ -212,11 +211,19 @@ class DataLoader {
                 mana: 11
         ]
 
+        def allowedMats = [ 'shinygem', 'elvendew', 'serpentvenom', 'ironwood' ]
+        def bannedMats = items.findAll { it.power == 0 && !allowedMats.contains(it.name) }.collect { it.name }
+
         mySkills.each { sk, v ->
             mySkills[sk] = nextLevel[v]
 
             def itemRates = [:]
             itemStats.each { name, item ->
+                // Check for banned mats
+                if (item.reqs.find { bannedMats.contains(it.key) }) {
+                    return
+                }
+
                 def craftTime = 0
                 item.skills.each { skill, amt ->
                     craftTime += amt / mySkills[skill]
