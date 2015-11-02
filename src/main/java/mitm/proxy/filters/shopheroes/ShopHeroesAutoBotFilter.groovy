@@ -9,12 +9,12 @@ import mitm.proxy.filters.PrintDataFilter
 class ShopHeroesAutoBotFilter extends DataFilter {
 
     def resources = [
-            iron: [ stored: 0, max: 0 ],
+            iron: [ stored: 180, max: 180 ],
             wood: [ stored: 240, max: 240 ],
             leather: [ stored: 300, max: 300 ],
             herb: [ stored: 300, max: 300 ],
-            steel: [ stored: 0, max: 0 ],
-            hardwood: [ stored: 0, max: 0 ],
+            steel: [ stored: 75, max: 75 ],
+            hardwood: [ stored: 75, max: 75 ],
             fabric: [ stored: 75, max: 75 ],
             oil: [ stored: 75, max: 75 ],
             gems: [ stored: 0, max: 0 ],
@@ -90,20 +90,20 @@ class ShopHeroesAutoBotFilter extends DataFilter {
     }
 
     def autoCraft() {
-        if (ShopHeroesProxyServer.autoHarvest) {
-            def craftMsg = JsonOutput.toJson([command: 'CraftItem', object: data.uid, slot: data.index, useAuto: false, useGems: false])
-            remote.write(0x81)
-            remote.write(craftMsg.getBytes().length)
-            remote.write(craftMsg.getBytes())
-            println craftMsg
-        }
+        def craftMsg = JsonOutput.toJson([command: 'CraftItem', object: data.uid, slot: data.index, useAuto: false, useGems: false])
+        remote.write(0x81)
+        remote.write(craftMsg.getBytes().length)
+        remote.write(craftMsg.getBytes())
+        println craftMsg
     }
 
     def storeResource(type, id, quantity) {
-        def harvestMessage = JsonOutput.toJson([command: 'StoreResource', resource: type, moduleId: id, amount: quantity])
-        remote.write(0x81)
-        remote.write(harvestMessage.getBytes().length)
-        remote.write(harvestMessage.getBytes())
-        println harvestMessage
+        if (ShopHeroesProxyServer.autoHarvest) {
+            def harvestMessage = JsonOutput.toJson([command: 'StoreResource', resource: type, moduleId: id, amount: quantity])
+            remote.write(0x81)
+            remote.write(harvestMessage.getBytes().length)
+            remote.write(harvestMessage.getBytes())
+            println harvestMessage
+        }
     }
 }
