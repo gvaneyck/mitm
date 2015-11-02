@@ -90,11 +90,13 @@ class ShopHeroesAutoBotFilter extends DataFilter {
     }
 
     def autoCraft() {
-        def craftMsg = JsonOutput.toJson([command: 'CraftItem', object: data.uid, slot: data.index, useAuto: false, useGems: false])
-        remote.write(0x81)
-        remote.write(craftMsg.getBytes().length)
-        remote.write(craftMsg.getBytes())
-        println craftMsg
+        if (ShopHeroesProxyServer.autoHarvest) {
+            def craftMsg = JsonOutput.toJson([command: 'CraftItem', object: data.uid, slot: data.index, useAuto: false, useGems: false])
+            remote.write(0x81)
+            remote.write(craftMsg.getBytes().length)
+            remote.write(craftMsg.getBytes())
+            println craftMsg
+        }
     }
 
     def storeResource(type, id, quantity) {
