@@ -44,6 +44,7 @@ class DataLoader {
     def tutorials
     def workers
     def workerLevels
+    def dictionary
 
     def nextLevel = [
             (32): 40,
@@ -96,8 +97,101 @@ class DataLoader {
         tutorials = loadTutorials()
         workers = loadWorkers()
         workerLevels = loadWorkerLevels()
+        dictionary = loadDictionary()
 
+//        new File('out.csv').withWriter { out ->
+//            def header = "Name,Item Level,Price,Power,Crafting XP,Type,Rarity,Iron,Wood,Leather,Herbs,Steel,Hardwood,Fabric,Oil,Gems,Mana,Requirement 1,Requirement 2,Metalworking,Woodworking," +
+//                    "Textile Working,Alchemy,Magic,Weaponcrafting,Armorcrafting,Arts And Crafts,Jewelry,Rune Writing,Tinkering,L1,L1 Boost,L2,L2 Boost,L3,L3 Boost,L4,L4 Boost,L5,L5 Boost"
+//            out.write("${header}\n")
+//            items.each { it ->
+//                if (it.power != 0) {
+//                    out.write("${getName(it.name + '_name')},${it.level},${it.price},${it.power},${it.xp},${getName(it.type)},${it.rare},")
+//                    out.write("${it.iron},${it.wood},${it.leather},${it.herb},${it.steel},${it.hardwood},${it.fabric},${it.oil},${it.gems},${it.mana},")
+//                    def req1 = (it.item1 == '' ? '---' : (it.i1c + ' ' + getQuality(it.i1q) + getName(it.item1 + '_name')))
+//                    def req2 = (it.item2 == '' ? '---' : (it.i2c + ' ' + getQuality(it.i2q) + getName(it.item2 + '_name')))
+//                    out.write("${req1},${req2},")
+//                    out.write("${it.metalworking},${it.woodworking},${it.textileworking},${it.alchemy},${it.channeling},")
+//                    out.write("${it.weaponcrafting},${it.armormaking},${it.craftsmanship},${it.jewelry},${it.enchanting},${it.tinkering},")
+//                    out.write("${it.l1},${getItemBonus(it.l1B)},")
+//                    out.write("${it.l2},${getItemBonus(it.l2B)},")
+//                    out.write("${it.l3},${getItemBonus(it.l3B)},")
+//                    out.write("${it.l4},${getItemBonus(it.l4B)},")
+//                    out.write("${it.l5},${getItemBonus(it.l5B)}\n")
+//                }
+//            }
+//        }
+
+//        new File('out.csv').withWriter { out ->
+//            achievements.each { it ->
+//                if (it.threshold != 0) {
+//                    def description = dictionary[it.family + '01_description'].replace('{0}', '' + it.threshold)
+//                    def reward = it.reward.replace('gems:gems,', 'Gems ').replace('gold:gold,', 'Gold ')
+//                    out.write("\"${description}\",\"${reward}\"\n")
+//                }
+//            }
+//        }
         calcBestItem()
+    }
+    //new File('out.csv').withWriter { out -> }
+    //legendary01_description
+
+    def getQuality(quality) {
+        switch (quality) {
+            case 0: return ''
+            case 1: return 'Good '
+            case 2: return 'Great '
+            case 3: return 'Flawless '
+            case 4: return 'Epic '
+            case 5: return 'Legendary '
+        }
+    }
+
+    def getItemBonus(bonus) {
+        if (bonus == null) {
+            return ''
+        } else if (bonus.startsWith('price*')) {
+            return 'Gold +' + (int)((bonus.substring(6).toDouble() - 1) * 100) + '%'
+        } else if (bonus.startsWith('quality=')) {
+            return 'Base Quality ' + getQuality(bonus.substring(8).toInteger()).trim()
+        } else if (bonus.startsWith('time*')) {
+            return 'Time -' + (int)((1 - bonus.substring(5).toDouble()) * 100) + '%'
+        } else if (bonus.contains('-')) {
+            def (mat, amt) = bonus.split('-')
+            return '-' + amt + ' ' + (getName(mat) ?: getName(mat + '_name'))
+        } else if (bonus.startsWith('power=')) {
+            def (skill, quality) = bonus.substring(6).split(',')
+            return 'Skill ' + getName(skill + '_name') + ' at ' + getQuality(quality.toInteger()).trim()
+        } else {
+            return 'Unlocks ' + getName(bonus + '_name')
+        }
+    }
+
+    def getName(item) {
+        if (!dictionary.get(item)) {
+            return null
+        }
+        return dictionary.get(item).split(' ')*.capitalize().join(' ')
+    }
+
+    def loadDictionary() {
+        pos = 0
+        bytes = new File('S:\\Unity Decompiler\\Shop Heroes\\shopheroes\\sharedassets0\\TextAsset\\texts_en.txt').bytes
+
+        def result = [:]
+        try {
+            while (true) {
+                def count = readUInt16()
+                for (int i = 0; i < count; i++) {
+                    def key = readString()
+                    def val = readString()
+                    result[key] = val
+                }
+            }
+        } catch (Exception e) {
+
+        }
+
+        return result
     }
 
     def calcBestItem() {
@@ -188,28 +282,42 @@ class DataLoader {
                 alchemy: 60,
                 metalworking: 40,
                 woodworking: 32,
-                textileworking: 50,
-                channeling: 40,
+                textileworking: 60,
+                channeling: 50,
                 weaponcrafting: 32,
                 armormaking: 40,
                 craftsmanship: 50,
                 jewelry: 32,
-                enchanting: 32,
+                enchanting: 40,
                 tinkering: 32
         ]
 
         def myRates = [
                 iron: 180,
-                wood: 168,
-                leather: 174,
-                herb: 162,
-                steel: 60,
-                hardwood: 60,
-                fabric: 57,
-                oil: 57,
-                gems: 11,
-                mana: 11
+                wood: 174,
+                leather: 180,
+                herb: 174,
+                steel: 63,
+                hardwood: 66,
+                fabric: 63,
+                oil: 63,
+                gems: 13,
+                mana: 12
         ]
+
+//        myRates.iron += 70
+//        myRates.wood += 65
+//        myRates.leather += 65
+//        myRates.herb += 65
+//
+//        myRates.steel += 25
+//        myRates.hardwood += 25
+//        myRates.fabric += 25
+//        myRates.oil += 25
+//
+//        myRates.gems += 5
+//        myRates.mana += 5
+
 
         def allowedMats = [ 'shinygem', 'elvendew', 'serpentvenom', 'ironwood' ]
         def bannedMats = items.findAll { it.power == 0 && !allowedMats.contains(it.name) }.collect { it.name }
