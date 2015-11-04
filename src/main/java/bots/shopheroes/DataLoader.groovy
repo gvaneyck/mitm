@@ -46,13 +46,6 @@ class DataLoader {
     def workerLevels
     def dictionary
 
-    def nextLevel = [
-            (32): 40,
-            (40): 50,
-            (50): 60,
-            (60): 75
-    ]
-
     public static void main(String[] args) {
         new DataLoader().run()
     }
@@ -277,38 +270,24 @@ class DataLoader {
         }
 
         // Determine best items
-        def mySkills = [
-                base: 40,
-                alchemy: 60,
-                metalworking: 40,
-                woodworking: 32,
-                textileworking: 60,
-                channeling: 50,
-                weaponcrafting: 32,
-                armormaking: 40,
-                craftsmanship: 50,
-                jewelry: 32,
-                enchanting: 40,
-                tinkering: 32
-        ]
-
+        def craftCap = 60
         def myRates = [
                 iron: 180,
-                wood: 174,
+                wood: 180,
                 leather: 180,
-                herb: 174,
-                steel: 63,
+                herb: 180,
+                steel: 66,
                 hardwood: 66,
-                fabric: 63,
-                oil: 63,
+                fabric: 66,
+                oil: 66,
                 gems: 13,
-                mana: 12
+                mana: 13
         ]
 
 //        myRates.iron += 70
-//        myRates.wood += 65
-//        myRates.leather += 65
-//        myRates.herb += 65
+//        myRates.wood += 70
+//        myRates.leather += 70
+//        myRates.herb += 70
 //
 //        myRates.steel += 25
 //        myRates.hardwood += 25
@@ -319,50 +298,58 @@ class DataLoader {
 //        myRates.mana += 5
 
 
-        def allowedMats = [ 'shinygem', 'elvendew', 'serpentvenom', 'ironwood' ]
-        def bannedMats = items.findAll { it.power == 0 && !allowedMats.contains(it.name) }.collect { it.name }
-
-        mySkills.each { sk, v ->
-            mySkills[sk] = nextLevel[v]
-
-            def itemRates = [:]
-            itemStats.each { name, item ->
-                // Check for banned mats
-                if (item.reqs.find { bannedMats.contains(it.key) }) {
-                    return
-                }
-
-                def craftTime = 0
-                item.skills.each { skill, amt ->
-                    craftTime += amt / mySkills[skill]
-                }
-                craftTime *= item.speed
-
-                def resourceTime = 0
-                item.reqs.each { mat, amt ->
-                    if (myRates.containsKey(mat)) {
-                        resourceTime += amt / (myRates[mat] * 3 / 60) // 3 bins, rates are per hour
-                    }
-                }
-
-                def realTime = Math.max(1 / 3, Math.max(craftTime, resourceTime))
-
-                def realPrice = item.price
-                if (item.quality == 1) {
-                    realPrice *= 1.25
-                } else if (item.quality == 2) {
-                    realPrice *= 2
-                } else if (item.quality != 0) {
-                    throw new Exception('unexpected quality for ' + item.name)
-                }
-
-                itemRates[name] = realPrice / realTime // Gold per minute
+        def bestMat = 'ironwood'
+        def allowedMats = []
+        def bannedMats = []
+        def allowed = true
+        items.findAll { it.power == 0 }.each {
+            if (allowed && it.name == bestMat) {
+                allowed = false
+                allowedMats << it.name
+            } else if (allowed) {
+                allowedMats << it.name
+            } else {
+                bannedMats << it.name
             }
-            itemRates = itemRates.sort { -it.value }
-            itemRates = itemRates.collect { rate -> "${rate.value} ${rate.key} ${items.find { it.name == rate.key }.level }" }
-
-            mySkills[sk] = v
         }
+
+        def itemRates = [:]
+        itemStats.each { name, item ->
+            // Check for banned mats
+            if (item.reqs.find { bannedMats.contains(it.key) }) {
+                return
+            }
+
+            def craftTime = 0
+            item.skills.each { skill, amt ->
+                craftTime += amt / craftCap
+            }
+            craftTime *= item.speed
+
+            def resourceTime = 0
+            item.reqs.each { mat, amt ->
+                if (myRates.containsKey(mat)) {
+                    resourceTime += amt / (myRates[mat] * 3 / 60) // 3 bins, rates are per hour
+                }
+            }
+
+            def realTime = Math.max(1 / 3, Math.max(craftTime, resourceTime))
+
+            def realPrice = item.price
+            if (item.quality == 1) {
+                realPrice *= 1.25
+            } else if (item.quality == 2) {
+                realPrice *= 2
+            } else if (item.quality != 0) {
+                throw new Exception('unexpected quality for ' + item.name)
+            }
+
+            itemRates[name] = realPrice / realTime // Gold per minute
+        }
+        itemRates = itemRates.sort { -it.value }
+        itemRates = itemRates.collect { rate -> "${rate.value} ${rate.key} ${items.find { it.name == rate.key }.level }" }
+
+        def temp = 0
     }
 
     def addReqs(reqSrc, newReqs, amt) {

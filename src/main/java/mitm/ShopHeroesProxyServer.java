@@ -12,8 +12,8 @@ public class ShopHeroesProxyServer {
     public static String host = "shopheroes-1.cloudcade.com";
     public static String ip = "104.197.86.226";
 
-    public static boolean autoRecraft = false;
     public static boolean autoHarvest = false;
+    public static boolean autoCraft = false;
 
     public static void main(String[] args) {
         try {
@@ -22,12 +22,12 @@ public class ShopHeroesProxyServer {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
                 String line = in.readLine();
-                if (line.equals("craft")) {
-                    autoRecraft = !autoRecraft;
-                    System.out.println("Auto recraft is now " + autoRecraft);
-                } else if (line.equals("harvest")) {
+                if (line.equals("harvest")) {
                     autoHarvest = !autoHarvest;
                     System.out.println("Auto harvest is now " + autoHarvest);
+                } else if (line.equals("craft")) {
+                    autoCraft = !autoCraft;
+                    System.out.println("Auto craft is now " + autoCraft);
                 }
             }
         }

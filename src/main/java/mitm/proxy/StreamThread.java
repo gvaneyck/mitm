@@ -50,10 +50,11 @@ public class StreamThread implements Runnable {
                     } else {
                         out.write(buffer, 0, bytesRead);
                     }
+                    out.flush();
                 }
                 catch (Exception e) {
-                    int i = 0;
                     // Drop messages if we get an exception from filter
+                    e.printStackTrace();
                 }
             }
         }

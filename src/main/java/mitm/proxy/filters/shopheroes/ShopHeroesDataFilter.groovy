@@ -49,11 +49,11 @@ public class ShopHeroesDataFilter extends DataFilter {
 
         if (skipNext) {
             skipNext = false
-            throw new IOException()
+            throw new IOException('Skipping message')
         }
         if (jsonData.contains('ReportError')) {
             skipNext = true
-            throw new IOException()
+            throw new IOException('Skipping message')
         }
 
         return null;
