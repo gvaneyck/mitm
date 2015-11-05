@@ -51,7 +51,7 @@ class DataLoader {
     }
 
     def run() {
-        bytes = new File("S:\\Unity Decompiler\\Shop Heroes\\shopheroes\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
+        bytes = new File("D:\\Unity Decompiler\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
         achievements = loadAchievements()
         adventures = loadAdventures()
         city = loadCity()
@@ -90,7 +90,7 @@ class DataLoader {
         tutorials = loadTutorials()
         workers = loadWorkers()
         workerLevels = loadWorkerLevels()
-        dictionary = loadDictionary()
+        //dictionary = loadDictionary()
 
 //        new File('out.csv').withWriter { out ->
 //            def header = "Name,Item Level,Price,Power,Crafting XP,Type,Rarity,Iron,Wood,Leather,Herbs,Steel,Hardwood,Fabric,Oil,Gems,Mana,Requirement 1,Requirement 2,Metalworking,Woodworking," +
@@ -191,12 +191,23 @@ class DataLoader {
         // Get base data
         def itemStats = [:]
         items.each { item ->
+            def skip = false
             // Skip 0 power items (keys, chests, quest rewards)
             if (item.power.toInteger() == 0) {
-                return
+                skip = true
             }
             // Skip chest blueprints
             if (item.rare.toInteger() != 0) {
+                skip = true
+            }
+            // Skip certain materials
+            [ "leather", "herb" ].each { type ->
+                if (item[type].toInteger() != 0) {
+                    skip = true
+                }
+            }
+
+            if (skip) {
                 return
             }
 
@@ -298,7 +309,7 @@ class DataLoader {
 //        myRates.mana += 5
 
 
-        def bestMat = 'ironwood'
+        def bestMat = 'ironcarapace'
         def allowedMats = []
         def bannedMats = []
         def allowed = true
@@ -333,7 +344,7 @@ class DataLoader {
                 }
             }
 
-            def realTime = Math.max(1 / 3, Math.max(craftTime, resourceTime))
+            def realTime = Math.max(craftTime, resourceTime)
 
             def realPrice = item.price
             if (item.quality == 1) {

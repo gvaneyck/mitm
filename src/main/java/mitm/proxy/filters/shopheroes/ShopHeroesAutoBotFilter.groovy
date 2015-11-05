@@ -9,22 +9,21 @@ import mitm.proxy.filters.PrintDataFilter
 class ShopHeroesAutoBotFilter extends DataFilter {
 
     def resources = [
-            iron: [ stored: 180, max: 180 ],
-            wood: [ stored: 300, max: 300 ],
-            leather: [ stored: 300, max: 300 ],
-            herbs: [ stored: 300, max: 300 ],
-            steel: [ stored: 75, max: 75 ],
-            hardwood: [ stored: 75, max: 75 ],
-            fabric: [ stored: 80, max: 80 ],
-            oil: [ stored: 75, max: 75 ],
-            gems: [ stored: 0, max: 0 ],
-            mana: [ stored: 50, max: 50 ]
+            iron:     [ max: 3 * 60 ],
+            wood:     [ max: 3 * 100 ],
+            leather:  [ max: 3 * 100 ],
+            herbs:    [ max: 3 * 100 ],
+            steel:    [ max: 3 * 20 ],
+            hardwood: [ max: 2 * 30 ],
+            fabric:   [ max: 2 * 30 ],
+            oil:      [ max: 2 * 30 ],
+            gems:     [ max: 0 * 5 ],
+            mana:     [ max: 2 * 25 ]
     ]
 
     def initialCrafts = [
-            'plumedhat': 5,
-            'potionofspeed': 1,
-            'crowstick': 3
+            'plumedhat': 0,
+            'potionofspeed': 0
     ]
 
     def craftQueue = []
@@ -53,15 +52,11 @@ class ShopHeroesAutoBotFilter extends DataFilter {
                     ]
             ],
             [
-                    uid: 'crowstick',
-                    reqs: [ wood: 4 ],
-                    waitTime: 13000,
-                    nextItem: [
-                            uid: 'healingrod',
-                            reqs: [ wood: 30, hardwood: 5 ]
-                    ]
+                    uid: 'sealofdeflection',
+                    reqs: [ iron: 20, steel: 6 ]
             ]
     ]
+
     def slots = [
             0: false,
             1: false,
@@ -69,6 +64,12 @@ class ShopHeroesAutoBotFilter extends DataFilter {
             3: false,
             4: false
     ]
+
+    public ShopHeroesAutoBotFilter() {
+        resources.each { mat, value ->
+            value.stored = value.max
+        }
+    }
 
     public byte[] handle(String name, byte[] buffer, int bytesRead) throws IOException {
         System.out.println(name + ": " + PrintDataFilter.parse(buffer, bytesRead))
