@@ -15,8 +15,8 @@ class ShopHeroesAutoBotFilter extends DataFilter {
             herbs:    [ max: 3 * 100 ],
             steel:    [ max: 3 * 20 ],
             hardwood: [ max: 2 * 30 ],
-            fabric:   [ max: 2 * 30 ],
-            oil:      [ max: 2 * 30 ],
+            fabric:   [ max: 3 * 30 ],
+            oil:      [ max: 3 * 30 ],
             gems:     [ max: 0 * 5 ],
             mana:     [ max: 2 * 25 ]
     ]
@@ -29,19 +29,28 @@ class ShopHeroesAutoBotFilter extends DataFilter {
     def craftQueue = []
     def craftOptions = [
             [
-                    uid: 'plumedhat',
-                    reqs: [ leather: 17 ],
-                    waitTime: 0,
+                    uid: 'circlet',
+                    reqs: [ leather: 1 ],
+                    waitTime: 5000,
                     nextItem: [
-                            uid: 'plumedhat',
-                            reqs: [ leather: 17 ],
-                            waitTime: 114000,
-                            nextItem: [
-                                    uid: 'scarletcoif',
-                                    reqs: [ leather: 44, fabric: 16 ]
-                            ]
+                            uid: 'tiara',
+                            reqs: [ iron: 7, leather: 35, fabric: 6 ]
                     ]
             ],
+//            [
+//                    uid: 'plumedhat',
+//                    reqs: [ leather: 17 ],
+//                    waitTime: 0,
+//                    nextItem: [
+//                            uid: 'plumedhat',
+//                            reqs: [ leather: 17 ],
+//                            waitTime: 114000,
+//                            nextItem: [
+//                                    uid: 'scarletcoif',
+//                                    reqs: [ leather: 44, fabric: 16 ]
+//                            ]
+//                    ]
+//            ],
             [
                     uid: 'potionofspeed',
                     reqs: [ herbs: 8 ],
@@ -51,10 +60,10 @@ class ShopHeroesAutoBotFilter extends DataFilter {
                             reqs: [ herbs: 45, oil: 10 ]
                     ]
             ],
-            [
-                    uid: 'sealofdeflection',
-                    reqs: [ iron: 20, steel: 6 ]
-            ]
+//            [
+//                    uid: 'sealofdeflection',
+//                    reqs: [ iron: 20, steel: 6 ]
+//            ],
     ]
 
     def slots = [
