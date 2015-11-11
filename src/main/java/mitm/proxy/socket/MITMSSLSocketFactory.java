@@ -9,7 +9,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -19,7 +18,6 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 
 public final class MITMSSLSocketFactory implements MITMSocketFactory {
     final ServerSocketFactory m_serverSocketFactory;
@@ -91,15 +89,4 @@ public final class MITMSSLSocketFactory implements MITMSocketFactory {
         return socket;
     }
 
-    private static class TrustEveryone implements X509TrustManager {
-        public void checkClientTrusted(X509Certificate[] chain, String authenticationType) {
-        }
-
-        public void checkServerTrusted(X509Certificate[] chain, String authenticationType) {
-        }
-
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-    }
 }

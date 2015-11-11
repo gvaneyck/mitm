@@ -14,6 +14,7 @@ public class ShopHeroesProxyServer {
 
     public static boolean autoHarvest = false;
     public static boolean autoCraft = false;
+    public static boolean spin = false;
 
     public static void main(String[] args) {
         try {
@@ -28,6 +29,9 @@ public class ShopHeroesProxyServer {
                 } else if (line.equals("craft")) {
                     autoCraft = !autoCraft;
                     System.out.println("Auto craft is now " + autoCraft);
+                } else if (line.equals("spin")) {
+                    spin = true;
+                    System.out.println("Spinning...");
                 }
             }
         }

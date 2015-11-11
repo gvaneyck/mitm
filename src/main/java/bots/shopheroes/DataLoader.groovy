@@ -51,7 +51,7 @@ class DataLoader {
     }
 
     def run() {
-        bytes = new File("D:\\Unity Decompiler\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
+        bytes = new File("S:\\Unity Decompiler\\Shop Heroes\\shopheroes\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
         achievements = loadAchievements()
         adventures = loadAdventures()
         city = loadCity()
@@ -90,7 +90,7 @@ class DataLoader {
         tutorials = loadTutorials()
         workers = loadWorkers()
         workerLevels = loadWorkerLevels()
-        //dictionary = loadDictionary()
+        dictionary = loadDictionary()
 
 //        new File('out.csv').withWriter { out ->
 //            def header = "Name,Item Level,Price,Power,Crafting XP,Type,Rarity,Iron,Wood,Leather,Herbs,Steel,Hardwood,Fabric,Oil,Gems,Mana,Requirement 1,Requirement 2,Metalworking,Woodworking," +
@@ -123,10 +123,132 @@ class DataLoader {
 //                }
 //            }
 //        }
+
+//        def buildingStats = [:]
+//        improvements.each { x ->
+//            if (!buildingStats[x.family]) {
+//                buildingStats[x.family] = [:]
+//            }
+//            buildingStats[x.family][x.level] = '' + x.amount
+//        }
+//
+//        new File('out.csv').withWriter { out ->
+//            buildingStats.each { family, levels ->
+//                out.write(getName(family + '01_name'))
+//                out.write(',')
+//            }
+//            out.write('\n')
+//
+//            for (int i = 1; i <= 100; i++) {
+//                buildingStats.each { family, levels ->
+//                    out.write(levels[i] ?: '')
+//                    out.write(',')
+//                }
+//                out.write('\n')
+//            }
+//        }
+
+//        new File('out.csv').withWriter { out ->
+//            out.write("Quest,Reward,Time,L0,F0,E0,B0,L1,F1,E1,B1,L2,F2,E2,B2,L3,F3,E3,B3,L4,F4,E4,B4,L5,E5\n")
+//            adventures.each {
+//                def hours = (int)(it.duration / 3600)
+//                def minutes = (int)(it.duration / 60) % 60
+//                def difficulty = getItem(it.reward).level + it.difficulty
+//                out.write("${getName(it.name + '_name')},${getName(it.reward + '_name')},${hours ? hours + 'H' : ''}${minutes ? minutes + 'M' : ''},")
+//                for (int i = 0; i < 5; i++) {
+//                    out.write("${it.q0},${it.ex1},${getQuestDifficulty(difficulty, i, false)},${getQuestDifficulty(difficulty, i, true)},")
+//                }
+//                out.write("${it.q5},${getQuestDifficulty(difficulty, 5, false)}\n")
+//            }
+//        }
+
+//        def buildingStats = [:]
+//        improvements.each { x ->
+//            if (!buildingStats[x.family]) {
+//                buildingStats[x.family] = [:]
+//            }
+//
+//            buildingStats[x.family][x.level] = [ formatBoost(x.collective), formatBoost(x.individual) ]
+//        }
+//
+//        new File('out.csv').withWriter { out ->
+//            buildingStats.each { family, levels ->
+//                out.write(getName(family + '01_name'))
+//                out.write(',,')
+//            }
+//            out.write('\n')
+//
+//            for (int i = 1; i <= 40; i++) {
+//                buildingStats.each { family, levels ->
+//                    out.write(levels[i][0] ?: '')
+//                    out.write(',')
+//                    out.write(levels[i][1] ?: '')
+//                    out.write(',')
+//                }
+//                out.write('\n')
+//            }
+//        }
+
+//        new File('out.csv').withWriter { out ->
+//            out.write("Name,Nice Name,Points/Lvl,Metalworking,Woodworking,Textile Working,Alchemy,Magic,Weaponcrafting,Armorcrafting,Arts And Crafts,Jewelry,Rune Writing,Tinkering,Mastery\n")
+//            workers.each {
+//                out.write("${getName(it.name + '_name')},${getName(it.name + '_nicename')},${it.pointsPerLevel},")
+//                out.write("${it.metalworking},${it.woodworking},${it.textileworking},${it.alchemy},${it.channeling},${it.weaponcrafting},")
+//                out.write("${it.armormaking},${it.craftsmanship},${it.jewelry},${it.enchanting},${it.tinkering},${it.mastery}\n")
+//            }
+//        }
+
+//        def getILvl = { desc, lvl ->
+//            return lvl + desc.substring(4).toInteger()
+//        }
+//        new File('out.csv').withWriter { out ->
+//            out.write("Player Level,Spin Cost,Rewards\n")
+//            rouletteLevels.each { x ->
+//                def total = 0
+//                x.each { total += (it.key.startsWith('w') ? it.value : 0) }
+//                out.write("${x.level},${x.priceSpin},")
+//                out.write("${x.w1/total},${x.gold/2} Gold,${x.w2/total},${x.gold} Gold,${x.w3/total},${x.gold*2} Gold,")
+//                out.write("${x.w4/total},~${getILvl(x.roulette4, x.item)} Item,${x.w5/total},~${getILvl(x.roulette5, x.item)} Item,${x.w6/total},~${getILvl(x.roulette6, x.item)} Item,")
+//                out.write("${x.w7/total},-Quest Mat,${x.w8/total},+Quest Mat,")
+//                out.write("${x.w9/total},${getName(x.key + '_name')},${x.w10/total},Spin,${x.w11/total},${x.gems} Gems,${x.w12/total},Blueprint Fragment\n")
+//            }
+//        }
+
         calcBestItem()
     }
-    //new File('out.csv').withWriter { out -> }
-    //legendary01_description
+
+    def formatBoost(data) {
+        def boost = data.split(',').collect {
+            if (it.startsWith('boost.')) {
+                it = it.substring(6)
+            } else if (it.startsWith('xp.')) {
+                it = it.substring(3)
+            }
+
+            def amt
+            if (it.contains('-')) {
+                def idx = it.indexOf('-')
+                amt = it.substring(idx + 1).toDouble()
+                if (amt < 1) {
+                    amt = String.format('-%.1f%%', amt * 100)
+                } else {
+                    amt = String.format('-%d', (int)amt)
+                }
+                it = it.substring(0, idx)
+            } else if (it.contains('+')) {
+                def idx = it.indexOf('+')
+                amt = it.substring(idx + 1).toDouble()
+                if (amt < 1) {
+                    amt = String.format('+%.1f%%', amt * 100)
+                } else {
+                    amt = String.format('+%d', (int)amt)
+                }
+                it = it.substring(0, idx)
+            }
+            return it + ' ' + amt
+        }
+        return "${boost.join(' ')}"
+    }
 
     def getQuality(quality) {
         switch (quality) {
@@ -137,6 +259,36 @@ class DataLoader {
             case 4: return 'Epic '
             case 5: return 'Legendary '
         }
+    }
+
+    def getItem(name) {
+        return items.find { it.name == name }
+    }
+
+    def getConstant(name) {
+        return constants.find { it.key == name }?.value
+    }
+
+    def getQuestDifficulty(difficulty, level, boss) {
+        def mult = (boss ? getConstant("boss${level + 1}Mult") : getConstant("explore${level}Mult") ?: 1)
+        def value = Math.pow(difficulty, getConstant('questDifficultyPower')) * 100 * mult
+
+        def roundFactor
+        if (value > 1000000)
+            roundFactor = 50000
+        else if (value > 100000)
+            roundFactor = 5000
+        else if (value > 10000)
+            roundFactor = 500
+        else if (value > 1000)
+            roundFactor = 50
+        else if (value > 50)
+            roundFactor = 5
+        else
+            roundFactor = 2
+
+        value = Math.round((int)((value + 1) / roundFactor)) * roundFactor
+        return value
     }
 
     def getItemBonus(bonus) {
@@ -201,11 +353,11 @@ class DataLoader {
                 skip = true
             }
             // Skip certain materials
-            [ "leather", "herb" ].each { type ->
-                if (item[type].toInteger() != 0) {
-                    skip = true
-                }
-            }
+//            [ "leather", "herb" ].each { type ->
+//                if (item[type].toInteger() != 0) {
+//                    skip = true
+//                }
+//            }
 
             if (skip) {
                 return
@@ -281,7 +433,7 @@ class DataLoader {
         }
 
         // Determine best items
-        def craftCap = 60
+        def craftCap = 1000
         def myRates = [
                 iron: 180,
                 wood: 180,
@@ -309,12 +461,14 @@ class DataLoader {
 //        myRates.mana += 5
 
 
-        def bestMat = 'ironcarapace'
+        //def bestMat = 'ironcarapace'
+        def maxMat = 11
         def allowedMats = []
         def bannedMats = []
         def allowed = true
         items.findAll { it.power == 0 }.each {
-            if (allowed && it.name == bestMat) {
+//            if (allowed && it.name == bestMat) {
+            if (allowed && allowedMats.size() == maxMat - 1) {
                 allowed = false
                 allowedMats << it.name
             } else if (allowed) {

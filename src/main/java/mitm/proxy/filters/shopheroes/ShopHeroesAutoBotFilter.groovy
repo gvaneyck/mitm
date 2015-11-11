@@ -21,48 +21,28 @@ class ShopHeroesAutoBotFilter extends DataFilter {
             mana:     [ max: 2 * 25 ]
     ]
 
-    def initialCrafts = [
-            'plumedhat': 0,
-            'potionofspeed': 0
-    ]
-
     def craftQueue = []
-    def craftOptions = [
-            [
-                    uid: 'circlet',
-                    reqs: [ leather: 1 ],
-                    waitTime: 5000,
-                    nextItem: [
-                            uid: 'tiara',
-                            reqs: [ iron: 7, leather: 35, fabric: 6 ]
-                    ]
+    def recipes = [
+            elvencoif: [
+                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 0 ],
+                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 0 ],
+                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 0 ],
+                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 114000 ],
+                    [ uid: 'scarletcoif', reqs: [ leather: 44, fabric: 16 ], waitTime: 0 ],
+                    [ uid: 'scarletcoif', reqs: [ leather: 44, fabric: 16 ], waitTime: 645000 ],
+                    [ uid: 'elvencoif', reqs: [ leather: 100, fabric: 50, mana: 8 ] ],
             ],
-//            [
-//                    uid: 'plumedhat',
-//                    reqs: [ leather: 17 ],
-//                    waitTime: 0,
-//                    nextItem: [
-//                            uid: 'plumedhat',
-//                            reqs: [ leather: 17 ],
-//                            waitTime: 114000,
-//                            nextItem: [
-//                                    uid: 'scarletcoif',
-//                                    reqs: [ leather: 44, fabric: 16 ]
-//                            ]
-//                    ]
+//            scarletcoif: [
+//                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 0 ],
+//                    [ uid: 'plumedhat', reqs: [ leather: 17 ], waitTime: 114000 ],
+//                    [ uid: 'scarletcoif', reqs: [ leather: 44, fabric: 16 ] ]
 //            ],
-            [
-                    uid: 'potionofspeed',
-                    reqs: [ herbs: 8 ],
-                    waitTime: 24000,
-                    nextItem: [
-                            uid: 'potionofstrength',
-                            reqs: [ herbs: 45, oil: 10 ]
-                    ]
+            potionofstrength: [
+                    [ uid: 'potionofspeed', reqs: [ herbs: 8 ], waitTime: 24000 ],
+                    [ uid: 'potionofstrength', reqs: [ herbs: 45, oil: 10 ] ]
             ],
-//            [
-//                    uid: 'sealofdeflection',
-//                    reqs: [ iron: 20, steel: 6 ]
+//            sealofdeflection: [
+//                    [ uid: 'sealofdeflection', reqs: [ iron: 20, steel: 6 ] ]
 //            ],
     ]
 
@@ -80,18 +60,29 @@ class ShopHeroesAutoBotFilter extends DataFilter {
         }
     }
 
+    def last = ''
+
     public byte[] handle(String name, byte[] buffer, int bytesRead) throws IOException {
         System.out.println(name + ": " + PrintDataFilter.parse(buffer, bytesRead))
 
         String dataString = new String(buffer, 0, bytesRead)
-        if (dataString.contains('{')) {
-            dataString = dataString.substring(dataString.indexOf('{'))
+        if (dataString.contains('{') || dataString.contains('}')) {
+            if (dataString.charAt(0) == 0xFFFD) {
+                last = ''
+                if (dataString.charAt(1) == 0x02) {
+                    dataString = dataString.substring(2)
+                } else {
+                    dataString = dataString.substring(dataString.indexOf(buffer[4]))
+                }
+            }
+            dataString = last + dataString
         }
 
         def jsonData
         try {
             jsonData = new JsonSlurper().parseText(dataString)
         } catch (Exception e) {
+            last = dataString
             return null
         }
 
@@ -153,6 +144,20 @@ class ShopHeroesAutoBotFilter extends DataFilter {
                     }
                 }
             }
+            if (event.event == 'GetCitiesEvent') {
+                event.data.candidates.each {
+                    println "${it.name} - ${(int)(it.avg / 1000000)}M avg, ${(int)(it.avg * it.pop / 1000000)}M total"
+                }
+            }
+        }
+
+        if (ShopHeroesProxyServer.spin) {
+            ShopHeroesProxyServer.spin = false
+            def spinMsg = '{"command":"SpinRoulette","useGems":false}'
+            remote.write(0x81)
+            remote.write(spinMsg.getBytes().length)
+            remote.write(spinMsg.getBytes())
+            println spinMsg
         }
 
         return null
@@ -166,17 +171,18 @@ class ShopHeroesAutoBotFilter extends DataFilter {
             }
 
             def reserved = resources.collectEntries { [ (it.key): 0 ] }
-            def craftItem = null
-            craftQueue.each { item ->
-                if (craftItem) {
+            def craftInfo = null
+            craftQueue.each { info ->
+                if (craftInfo) {
                     return
                 }
 
                 def valid = true
-                if (item.minTime > System.currentTimeMillis()) {
+                if (info.minTime > System.currentTimeMillis()) {
                     valid = false
                 }
-                item.reqs.each { mat, amt ->
+
+                recipes[info.recipe][info.step].reqs.each { mat, amt ->
                     if (resources[mat].stored - reserved[mat] < amt) {
                         valid = false
                     }
@@ -184,51 +190,44 @@ class ShopHeroesAutoBotFilter extends DataFilter {
                 }
 
                 if (valid) {
-                    craftItem = item
+                    craftInfo = info
                 }
             }
 
-            if (craftItem) {
-                craftQueue.remove(craftItem)
+            if (craftInfo) {
+                craftQueue.remove(craftInfo)
             }
 
-            craftOptions.each { item ->
-                if (craftItem) {
+            recipes.each { recipe, steps ->
+                if (craftInfo) {
                     return
                 }
 
                 def valid = true
-                item.reqs.each { mat, amt ->
+                steps[0].reqs.each { mat, amt ->
                     if (resources[mat].stored - reserved[mat] < amt) {
                         valid = false
                     }
                 }
 
                 if (valid) {
-                    craftItem = item
+                    craftInfo = [ recipe: recipe, step: 0 ]
                 }
             }
 
-            if (craftItem) {
-                if (initialCrafts.containsKey(craftItem.uid) && initialCrafts[craftItem.uid] > 0) {
-                    if (craftItem.nextItem) {
-                        def item = cloneMap(craftItem.nextItem)
-                        craftQueue << item
-                    }
-                    initialCrafts[craftItem.uid]--
-                    autoCraft()
-                    return
-                }
+            if (craftInfo) {
+                def recipe = recipes[craftInfo.recipe]
+                def step = recipe[craftInfo.step]
 
-                craftItem.reqs.each { mat, amt ->
+                craftInfo.reqs.each { mat, amt ->
                     resources[mat].stored -= amt
                 }
-                if (craftItem.nextItem) {
-                    def item = cloneMap(craftItem.nextItem)
-                    item.minTime = System.currentTimeMillis() + craftItem.waitTime + 5000 // 5s buffer
-                    craftQueue << item
+                if (craftInfo.step < recipe.size() - 1) {
+                    craftInfo.step++
+                    craftInfo.minTime = System.currentTimeMillis() + (step.waitTime ?: 0) + 3000 // 3s buffer
+                    craftQueue << craftInfo
                 }
-                doCraft(craftItem.uid, slotId)
+                doCraft(step.uid, slotId)
             }
         }
     }

@@ -11,50 +11,50 @@ public class ShopHeroesDataFilter extends DataFilter {
     boolean skipNext = false;
 
     public byte[] handle(String name, byte[] buffer, int bytesRead) throws IOException {
-        byte[] bufferCopy = Arrays.copyOf(buffer, bytesRead);
-
-        byte flags = bufferCopy[0];
-        boolean fin = (flags & 0x80) != 0;
-        boolean rsv1 = (flags & 0x40) != 0;
-        boolean rsv2 = (flags & 0x20) != 0;
-        boolean rsv3 = (flags & 0x10) != 0;
-        int opcode = flags & 0x0F;
-
-        boolean masked = (bufferCopy[1] & 0x80) != 0;
-        int length = bufferCopy[1] & 0x7F;
-
-        int offset = 2;
-        if (length == 126) {
-            length = ((bufferCopy[offset + 0] & 0xFF) << 8)
-                    + (bufferCopy[offset + 1] & 0xFF);
-            offset += 2;
-        } else if (length == 127) {
-            length = ((bufferCopy[offset + 0] & 0xFF) << 24)
-                    + ((bufferCopy[offset + 1] & 0xFF) << 16)
-                    + ((bufferCopy[offset + 2] & 0xFF) << 8)
-                    + (bufferCopy[offset + 3] & 0xFF);
-            offset += 4;
-        }
-
-        if (masked) {
-            for (int i = offset + 4; i < bufferCopy.length; i++) {
-                byte xor = bufferCopy[((i - offset - 4) % 4) + offset];
-                bufferCopy[i] = (byte) (bufferCopy[i] ^ xor);
-            }
-            offset += 4;
-        }
-
-        String jsonData = new String(bufferCopy, offset, bufferCopy.length - offset);
-        System.out.println(jsonData);
-
-        if (skipNext) {
-            skipNext = false
-            throw new IOException('Skipping message')
-        }
-        if (jsonData.contains('ReportError')) {
-            skipNext = true
-            throw new IOException('Skipping message')
-        }
+//        byte[] bufferCopy = Arrays.copyOf(buffer, bytesRead);
+//
+//        byte flags = bufferCopy[0];
+//        boolean fin = (flags & 0x80) != 0;
+//        boolean rsv1 = (flags & 0x40) != 0;
+//        boolean rsv2 = (flags & 0x20) != 0;
+//        boolean rsv3 = (flags & 0x10) != 0;
+//        int opcode = flags & 0x0F;
+//
+//        boolean masked = (bufferCopy[1] & 0x80) != 0;
+//        int length = bufferCopy[1] & 0x7F;
+//
+//        int offset = 2;
+//        if (length == 126) {
+//            length = ((bufferCopy[offset + 0] & 0xFF) << 8)
+//                    + (bufferCopy[offset + 1] & 0xFF);
+//            offset += 2;
+//        } else if (length == 127) {
+//            length = ((bufferCopy[offset + 0] & 0xFF) << 24)
+//                    + ((bufferCopy[offset + 1] & 0xFF) << 16)
+//                    + ((bufferCopy[offset + 2] & 0xFF) << 8)
+//                    + (bufferCopy[offset + 3] & 0xFF);
+//            offset += 4;
+//        }
+//
+//        if (masked) {
+//            for (int i = offset + 4; i < bufferCopy.length; i++) {
+//                byte xor = bufferCopy[((i - offset - 4) % 4) + offset];
+//                bufferCopy[i] = (byte) (bufferCopy[i] ^ xor);
+//            }
+//            offset += 4;
+//        }
+//
+//        String jsonData = new String(bufferCopy, offset, bufferCopy.length - offset);
+//        System.out.println(jsonData);
+//
+//        if (skipNext) {
+//            skipNext = false
+//            throw new IOException('Skipping message')
+//        }
+//        if (jsonData.contains('ReportError')) {
+//            skipNext = true
+//            throw new IOException('Skipping message')
+//        }
 
         return null;
     }
