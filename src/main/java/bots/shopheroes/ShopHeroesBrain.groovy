@@ -4,7 +4,7 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 class ShopHeroesBrain {
-    def launchTime = System.currentTimeMillis()
+    def craftThrottle = System.currentTimeMillis() + 5000
 
     ShopHeroesBot client
 
@@ -142,8 +142,20 @@ class ShopHeroesBrain {
         thread.start()
     }
 
+    def VisitorEnterEvent(data) {
+//        if (canCompliment(data.uid, data.seed)) {
+            // can compliment
+//        }
+    }
+
     def OutOfSyncEvent(data) {
         println 'OUT OF SYNC'
+        if (lastCraft) {
+            lastCraft.each { item, amt ->
+                inventory[item] += amt
+            }
+            lastCraft = null
+        }
     }
 
     def rev() {
@@ -172,13 +184,21 @@ class ShopHeroesBrain {
             whisperingwand: [ name: 'whisperingwand', reqs: [ wood: 75, hardwood: 32 ], itemReq: 'mutedcaster', itemReqQuality: 0, itemReqNum: 3 ],
             mutedcaster: [ name: 'mutedcaster', reqs: [ wood: 21 ], itemReq: 'walkingstick', itemReqQuality: 1, itemReqNum: 3 ],
             walkingstick: [ name: 'walkingstick', reqs: [ wood: 1 ] ],
+
+            soldiersmark: [ name: 'soldiersmark', reqs: [ iron: 45, steel: 10 ], itemReq: 'dirk', itemReqQuality: 0, itemReqNum: 3 ],
+            dirk: [ name: 'dirk', reqs: [ iron: 5 ], itemReq: 'knife', itemReqQuality: 0, itemReqNum: 1 ],
+            knife: [ name: 'knife', reqs: [ iron: 1 ] ],
+
+            sealofdeflection: [ name: 'sealofdeflection', reqs: [ iron: 20, steel: 6 ] ]
     ]
 
     def toCraft = [
             'elvencoif',
-            'whisperingwand',
+            'soldiersmark',
+//            'sealofdeflection',
     ]
     def craftQueue = []
+    def lastCraft = null
 
     def getOwnedQuantity(item, quality) {
         def owned = 0
@@ -192,8 +212,21 @@ class ShopHeroesBrain {
         return "${item}|q${quality > 0 ? quality : ''}"
     }
 
+    def removeItem(name, quality, amt) {
+        lastCraft = [:]
+        for (int i = quality; i < 5; i++) {
+            def itemName = getInventoryKey(name, i)
+            def avail = Math.min(inventory[itemName], amt)
+            lastCraft[itemName] = avail
+            inventory[itemName] -= avail
+            amt -= avail
+            if (amt == 0)
+                break
+        }
+    }
+
     def synchronized checkCrafting() {
-        if (System.currentTimeMillis() - launchTime < 5000) {
+        if (System.currentTimeMillis() < craftThrottle) {
             return // Give time to retrieve all crafts from slots
         }
 
@@ -236,17 +269,20 @@ class ShopHeroesBrain {
         }
 
         if (craftItem) {
+            craftThrottle = System.currentTimeMillis() + 5000
             craftQueue.remove(craftItem)
+            lastCraft = craftItem
 
             slots[slotId].available = false
             slots[slotId].expectedTime = System.currentTimeMillis() + 5000
+
             def recipe = recipes[craftItem]
             recipe.reqs.each { res, amt ->
                 resources[res].stored -= amt
             }
 
             if (recipe.itemReq) {
-                inventory[getInventoryKey(recipe.itemReq, recipe.itemReqQuality)] -= recipe.itemReqNum
+                removeItem(recipe.itemReq, recipe.itemReqQuality, recipe.itemReqNum)
             }
             client.send([command: 'CraftItem', object: craftItem, slot: slotId, useAuto: false, useGems: false])
         }
