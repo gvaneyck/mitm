@@ -49,11 +49,11 @@ class ShopHeroesBrain {
         this.client = client
     }
 
-    def canCompliment(seed, customer) {
+    def canCompliment(customer, seed) {
         if (customer == null) {
             return false
         }
-        return (((seed * 16807L % 2147483647L - 1f) / 2.14748365E+09f) < sociability[customer] / 10)
+        return (((seed * 16807 % 2147483647 - 1) / 2.14748365E+09f) < sociability[customer] / 10)
     }
 
     def SignInEvent(data) {
@@ -82,15 +82,7 @@ class ShopHeroesBrain {
             return [ resData.uid, [ stored: resData.stored, binned: binned, max: data.modifier[resData.uid + '_storage'] ] ]
         }
 
-        visitors = data.user.visitors.collect {
-            [
-                    canCompliment: canCompliment(it.seed, it.uid),
-                    reqUid: it.reqUid,
-                    uid: it.uid,
-                    type: it.type,
-                    level: it.level
-            ]
-        }
+        visitors = data.user.visitors.each { VisitorEnterEvent(it) }
 
         trades = data.user.trades // TODO: trades
     }
@@ -143,19 +135,42 @@ class ShopHeroesBrain {
     }
 
     def VisitorEnterEvent(data) {
-//        if (canCompliment(data.uid, data.seed)) {
-            // can compliment
-//        }
+        def dialogs = []
+        if (data.type == 'buyer' && ['palash', 'garreth'].contains(data.uid)) {
+            def item = null
+            for (int i = 0; i < 5; i++) {
+                def sellName = 'elvencoif:' + i
+                def invName = "elvencoif|${i == 0 ? 'q' : 'q' + i}"
+                if (inventory[invName] > 0) {
+                    item = sellName
+                    inventory[invName]--
+                }
+            }
+            if (item) {
+                dialogs << [ d: 'suggest', o: item ]
+            }
+        }
+        if (canCompliment(data.uid, data.seed)) {
+            dialogs << [ d: 'compliment' ]
+        }
+        if (data.type == 'seller') {
+            dialogs << [ d: 'buy' ]
+        }
+        if (!dialogs.find { it.d == 'buy' || it.d == 'suggest' }) {
+            dialogs << [ d: 'refuse' ]
+        }
+        if (dialogs.find { it.d == 'suggest' }) {
+            dialogs << [ d: 'sell' ]
+        }
+        client.send([ command: 'VisitorDialog', visitor: data.index, dialogs: dialogs ])
+    }
+
+    def ChatEvent(data) {
+        println "${data.name.substring(0, data.name.indexOf('#'))}: ${data.text}"
     }
 
     def OutOfSyncEvent(data) {
         println 'OUT OF SYNC'
-        if (lastCraft) {
-            lastCraft.each { item, amt ->
-                inventory[item] += amt
-            }
-            lastCraft = null
-        }
     }
 
     def rev() {
@@ -194,11 +209,10 @@ class ShopHeroesBrain {
 
     def toCraft = [
             'elvencoif',
-            'soldiersmark',
+//            'soldiersmark',
 //            'sealofdeflection',
     ]
     def craftQueue = []
-    def lastCraft = null
 
     def getOwnedQuantity(item, quality) {
         def owned = 0
@@ -213,11 +227,9 @@ class ShopHeroesBrain {
     }
 
     def removeItem(name, quality, amt) {
-        lastCraft = [:]
         for (int i = quality; i < 5; i++) {
             def itemName = getInventoryKey(name, i)
             def avail = Math.min(inventory[itemName], amt)
-            lastCraft[itemName] = avail
             inventory[itemName] -= avail
             amt -= avail
             if (amt == 0)
@@ -271,7 +283,6 @@ class ShopHeroesBrain {
         if (craftItem) {
             craftThrottle = System.currentTimeMillis() + 5000
             craftQueue.remove(craftItem)
-            lastCraft = craftItem
 
             slots[slotId].available = false
             slots[slotId].expectedTime = System.currentTimeMillis() + 5000

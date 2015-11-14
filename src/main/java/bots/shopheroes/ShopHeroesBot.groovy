@@ -21,7 +21,8 @@ class ShopHeroesBot extends WebSocketClient {
     def slurper = new JsonSlurper()
 
     public static void main(String[] args) {
-        new ShopHeroesBot('', '')
+        def (userId, token) = new File('login.txt').readLines()[0].split('=')*.trim()
+        new ShopHeroesBot(userId, token)
     }
 
     public ShopHeroesBot(userId, token) {

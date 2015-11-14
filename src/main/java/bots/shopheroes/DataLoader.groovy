@@ -51,7 +51,7 @@ class DataLoader {
     }
 
     def run() {
-        bytes = new File("S:\\Unity Decompiler\\Shop Heroes\\shopheroes\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
+        bytes = new File("D:\\Unity Decompiler\\staticdata\\CAB-6fc6b3ebbc62e47018550ddbb2a35e17\\TextAsset\\staticdata.txt").bytes
         achievements = loadAchievements()
         adventures = loadAdventures()
         city = loadCity()
@@ -90,7 +90,7 @@ class DataLoader {
         tutorials = loadTutorials()
         workers = loadWorkers()
         workerLevels = loadWorkerLevels()
-        dictionary = loadDictionary()
+//        dictionary = loadDictionary()
 
 //        new File('out.csv').withWriter { out ->
 //            def header = "Name,Item Level,Price,Power,Crafting XP,Type,Rarity,Iron,Wood,Leather,Herbs,Steel,Hardwood,Fabric,Oil,Gems,Mana,Requirement 1,Requirement 2,Metalworking,Woodworking," +
@@ -214,7 +214,71 @@ class DataLoader {
 //            }
 //        }
 
+//        def moduleStats = [:]
+//        modules.each { x ->
+//            if (x.appealScore > 0) {
+//                return
+//            }
+//            if (!moduleStats[x.family]) {
+//                moduleStats[x.family] = [:]
+//            }
+//
+//            def info = []
+//            if (x.metalworking) info << x.metalworking + ' Metalworking'
+//            if (x.woodworking) info << x.woodworking + ' Woodworking'
+//            if (x.textileworking) info << x.textileworking + ' Textile Working'
+//            if (x.alchemy) info << x.alchemy + ' Alchemy'
+//            if (x.channeling) info << x.channeling + ' Magic'
+//            if (x.weaponcrafting) info << x.weaponcrafting + ' Weaponcrafting'
+//            if (x.armormaking) info << x.armormaking + ' Armorcrafting'
+//            if (x.craftsmanship) info << x.craftsmanship + ' Arts And Crafts'
+//            if (x.jewelry) info << x.jewelry + ' Jewelry'
+//            if (x.enchanting) info << x.enchanting + ' Rune Writing'
+//            if (x.tinkering) info << x.tinkering + ' Tinkering'
+//            if (x.energyCapacity) info << x.fusionMax + ' Energy Capacity'
+//            if (x.capacity) info << x.capacity + ' Capacity'
+//            if (x.resStorage) info << x.resStorage + ' Storage'
+//            if (x.energyBonus) info << x.energyBonus + ' Energy'
+//            if (x.storage) info << x.storage + ' Storage'
+//            if (x.fusionMax) info << x.fusionMax + ' Slots'
+//
+//            moduleStats[x.family][x.level] = [ x.costGold, formatSeconds(x.time), info.join(',') ]
+//        }
+//
+//        new File('out.csv').withWriter { out ->
+//            out.write('Level,')
+//            moduleStats.each { family, levels ->
+//                out.write(family)
+//                out.write(',,,')
+//            }
+//            out.write('\n')
+//
+//            for (int i = 1; i <= 15; i++) {
+//                out.write(i + ',')
+//                moduleStats.each { family, levels ->
+//                    if (levels.containsKey(i)) {
+//                        out.write(levels[i][0].toString())
+//                        out.write(',')
+//                        out.write(levels[i][1].toString())
+//                        out.write(',"')
+//                        out.write(levels[i][2] ?: '')
+//                        out.write('",')
+//                    }
+//                }
+//                out.write('\n')
+//            }
+//        }
+
         calcBestItem()
+    }
+
+    def formatSeconds(time) {
+        if (!time) return ''
+        def hours = (int)(time / 3600)
+        def minutes = (int)(time / 60) % 60
+        def seconds = (int)time % 60
+
+        return "${hours ? hours + 'H' : ''}${minutes ? minutes + 'M' : ''}${seconds ? seconds + 'S' : ''}"
     }
 
     def formatBoost(data) {
