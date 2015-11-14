@@ -148,6 +148,7 @@ class ShopHeroesBrain {
             }
             if (item) {
                 dialogs << [ d: 'suggest', o: item ]
+                dialogs << [ d: 'surcharge', o: 20 ]
             }
         }
         if (canCompliment(data.uid, data.seed)) {
