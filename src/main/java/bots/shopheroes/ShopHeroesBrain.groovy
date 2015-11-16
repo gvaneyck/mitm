@@ -53,7 +53,7 @@ class ShopHeroesBrain {
         if (customer == null) {
             return false
         }
-        return (((seed * 16807 % 2147483647 - 1) / 2.14748365E+09f) < sociability[customer] / 10)
+        return (((seed * 16807L % 2147483647L - 1) / 2.14748365E+09f) < sociability[customer] / 10)
     }
 
     def SignInEvent(data) {
@@ -101,10 +101,11 @@ class ShopHeroesBrain {
     }
 
     def ResourceChangeEvent(data) {
-        resources[data.uid].stored = data.stored
-        resources[data.uid].binned = 0
+        def resource = data.uid
+        resources[resource].stored = data.stored
+        resources[resource].binned = 0
         data.bins.each {
-            resources[data.uid].binned += it.quantity
+            resources[resource].binned += it.quantity
         }
     }
 
@@ -127,7 +128,7 @@ class ShopHeroesBrain {
                     sleep(data.secondsCompletedIn * 1000 + 100)
                 }
                 client.send([command: 'StoreItem', slot: slotId])
-                sleep(1000)
+                craftThrottle = System.currentTimeMillis() + 1000
                 slots[slotId].available = true
             }
         }
@@ -148,14 +149,14 @@ class ShopHeroesBrain {
             }
             if (item) {
                 dialogs << [ d: 'suggest', o: item ]
-                dialogs << [ d: 'surcharge', o: 20 ]
+//                dialogs << [ d: 'surcharge', o: 20 ]
             }
         }
         if (canCompliment(data.uid, data.seed)) {
             dialogs << [ d: 'compliment' ]
         }
         if (data.type == 'seller') {
-            dialogs << [ d: 'buy' ]
+//            dialogs << [ d: 'buy' ]
         }
         if (!dialogs.find { it.d == 'buy' || it.d == 'suggest' }) {
             dialogs << [ d: 'refuse' ]
@@ -177,6 +178,11 @@ class ShopHeroesBrain {
     def rev() {
         checkResources()
         checkCrafting()
+        checkSelling()
+    }
+
+    def checkSelling() {
+
     }
 
     def checkResources() {
@@ -184,7 +190,9 @@ class ShopHeroesBrain {
             if (data.stored < data.max && data.binned > 0) {
                 def toStore = (int)Math.min(data.binned, data.max - data.stored)
                 data.binned -= toStore
-                data.stored += toStore
+                // Game server lies about binned resources in UpdateResourcesEvent, so don't assume we get them
+                // It immediately responds with ResourceChangeEvent, so just have to wait a message
+                //data.stored += toStore
                 client.send([ command: 'StoreResource', resource: res, amount: toStore ])
             }
         }

@@ -6,6 +6,7 @@ import mitm.proxy.socket.TrustEveryone
 import org.java_websocket.client.DefaultSSLWebSocketClientFactory
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.drafts.Draft_17
+import org.java_websocket.exceptions.WebsocketNotConnectedException
 import org.java_websocket.handshake.ServerHandshake
 
 import javax.net.ssl.SSLContext
@@ -89,9 +90,14 @@ class ShopHeroesBot extends WebSocketClient {
     }
 
     public synchronized void send(Map data) {
-        def jsonData = JsonOutput.toJson(data)
-        println jsonData
-        super.send(jsonData)
-        sleep(100)
+        try {
+            def jsonData = JsonOutput.toJson(data)
+            println jsonData
+            super.send(jsonData)
+            sleep(100)
+        } catch (WebsocketNotConnectedException e) {
+            this.closeBlocking()
+            new ShopHeroesBot(userId, token)
+        }
     }
 }
