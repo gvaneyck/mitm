@@ -86,9 +86,13 @@ public class LocalKeyStore {
         };
         new ProcessBuilder(command).redirectErrorStream(true).start();
 
-        // TODO: Wait for files to exist
+        // Wait for files to exist
+        File keyFile = new File("certs/" + shortName + ".key");
+        while (!keyFile.exists()) {
+            try { Thread.sleep(1000); } catch (Exception e) { }
+        }
 
-        byte[] keyBytes = IOUtils.toByteArray(new FileInputStream("certs/" + shortName + ".key"));
+        byte[] keyBytes = IOUtils.toByteArray(new FileInputStream(keyFile));
         String key = new String(keyBytes)
                 .replace("-----BEGIN PRIVATE KEY-----\n", "")
                 .replace("\n-----END PRIVATE KEY-----\n", "");
