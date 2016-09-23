@@ -6,11 +6,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public final class MITMPlainSocketFactory implements MITMSocketFactory {
+
     public final ServerSocket createServerSocket(String localHost, int localPort, int timeout) throws IOException {
         final ServerSocket socket = new ServerSocket(localPort, 50, InetAddress.getByName(localHost));
-
         socket.setSoTimeout(timeout);
-
         return socket;
     }
 
@@ -18,4 +17,3 @@ public final class MITMPlainSocketFactory implements MITMSocketFactory {
         return new Socket(remoteHost, remotePort);
     }
 }
-

@@ -1,11 +1,6 @@
-package mitm.proxy.filters.shopheroes;
+package mitm.proxy.filters.shopheroes
 
-import mitm.proxy.filters.DataFilter;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
+import mitm.proxy.filters.DataFilter
 
 public class ShopHeroesDataFilter extends DataFilter {
     boolean skipNext = false;

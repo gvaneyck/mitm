@@ -58,5 +58,4 @@ public class InsecureProxyEngine implements Runnable {
             }
         }
     }
-
 }

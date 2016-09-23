@@ -1,8 +1,3 @@
-// This file is part of The Grinder software distribution. Refer to
-// the file LICENSE which is part of The Grinder distribution for
-// licensing details. The Grinder distribution is available on the
-// Internet at http://grinder.sourceforge.net/
-
 package mitm.proxy;
 
 import mitm.proxy.filters.DataFilter;
@@ -12,6 +7,7 @@ import java.io.OutputStream;
 import java.net.SocketException;
 
 public class StreamThread implements Runnable {
+
     private final static int BUFFER_SIZE = 65536;
 
     private final String name;
